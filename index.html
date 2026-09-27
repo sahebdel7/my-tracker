@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت دخل و خرج من</title>
+    <!-- فونت زیبای وزیرمتن -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.0.0/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --surface-color: #161b22;
+            --primary-color: #2ea043; /* رنگ سبز درآمد */
+            --danger-color: #f85149;  /* رنگ قرمز هزینه */
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --border-color: #30363d;
+            --button-color: #58a6ff;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            padding: 25px;
+            border-radius: 12px;
+            flex: 1;
+            min-width: 250px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .card h3 {
+            margin: 0 0 15px 0;
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .card .amount {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .income-text { color: var(--primary-color); }
+        .expense-text { color: var(--danger-color); }
+
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-section, .list-section {
+            background-color: var(--surface-color);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-section { flex: 1; min-width: 300px; }
+        .list-section { flex: 2; min-width: 500px; overflow-x: auto;}
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--button-color);
+        }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--button-color);
+            color: #0d1117;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: inherit;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        button.submit-btn:hover { opacity: 0.9; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: right;
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th { 
+            color: var(--text-secondary); 
+            font-weight: normal;
+        }
+
+        .delete-btn {
+            background-color: transparent;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-family: inherit;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        /* مخفی کردن آیکون تقویم در مرورگر برای یکدستی ظاهر */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>مدیریت مالی من</h1>
+            <p style="color: var(--text-secondary);">ثبت، پیگیری و مدیریت هوشمند هزینه‌ها</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h3>موجودی کل</h3>
+                <div class="amount" id="total-balance" style="color: #ffffff;">۰ تومان</div>
+            </div>
+            <div class="card">
+                <h3>مجموع درآمد</h3>
+                <div class="amount income-text" id="total-income">۰ تومان</div>
+            </div>
+            <div class="card">
+                <h3>مجموع هزینه</h3>
+                <div class="amount expense-text" id="total-expense">۰ تومان</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <h3 style="margin-top: 0;">ثبت تراکنش جدید</h3>
+                <form id="transaction-form">
+                    <div class="form-group">
+                        <label>نوع تراکنش</label>
+                        <select id="type" required>
+                            <option value="expense">هزینه (خروج پول)</option>
+                            <option value="income">درآمد (ورود پول)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>مبلغ (تومان)</label>
+                        <input type="number" id="amount" required min="1" placeholder="مثلاً: 500000">
+                    </div>
+                    <div class="form-group">
+                        <label>دسته‌بندی یا شرح</label>
+                        <input type="text" id="category" placeholder="مثال: خرید سوپرمارکت، حقوق، کرایه" required>
+                    </div>
+                    <div class="form-group">
+                        <label>تاریخ</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <button type="submit" class="submit-btn">ثبت تراکنش</button>
+                </form>
+            </div>
+
+            <div class="list-section">
+                <h3 style="margin-top: 0;">لیست تراکنش‌ها</h3>
+                <table id="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>تاریخ (شمسی)</th>
+                            <th>نوع</th>
+                            <th>شرح</th>
+                            <th>مبلغ</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaction-list">
+                        <!-- لیست از طریق جاوا اسکریپت پر می‌شود -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // خواندن اطلاعات قبلی از حافظه مرورگر
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+        // تبدیل تاریخ میلادی به تاریخ شمسی با نام ماه‌ها
+        function toShamsi(gregorianDate) {
+            return new Intl.DateTimeFormat('fa-IR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }).format(new Date(gregorianDate));
+        }
+
+        // فرمت کردن اعداد به صورت سه‌رقم سه‌رقم فارسی
+        function formatMoney(amount) {
+            return new Intl.NumberFormat('fa-IR').format(amount) + ' تومان';
+        }
+
+        // بروزرسانی رابط کاربری
+        function updateUI() {
+            const list = document.getElementById('transaction-list');
+            list.innerHTML = '';
+            let income = 0;
+            let expense = 0;
+
+            // مرتب‌سازی بر اساس تاریخ (جدیدترین در بالا)
+            transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            transactions.forEach(t => {
+                const amountNum = Number(t.amount);
+                if (t.type === 'income') income += amountNum;
+                else expense += amountNum;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${toShamsi(t.date)}</td>
+                    <td class="${t.type === 'income' ? 'income-text' : 'expense-text'}">
+                        ${t.type === 'income' ? 'درآمد' : 'هزینه'}
+                    </td>
+                    <td>${t.category}</td>
+                    <td>${formatMoney(t.amount)}</td>
+                    <td><button class="delete-btn" onclick="deleteTransaction(${t.id})">حذف</button></td>
+                `;
+                list.appendChild(tr);
+            });
+
+            // بروزرسانی داشبورد
+            document.getElementById('total-balance').textContent = formatMoney(income - expense);
+            document.getElementById('total-income').textContent = formatMoney(income);
+            document.getElementById('total-expense').textContent = formatMoney(expense);
+        }
+
+        // رویداد ثبت فرم
+        document.getElementById('transaction-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newTransaction = {
+                id: Date.now(),
+                type: document.getElementById('type').value,
+                amount: document.getElementById('amount').value,
+                category: document.getElementById('category').value,
+                date: document.getElementById('date').value
+            };
+            
+            transactions.push(newTransaction);
+            localStorage.setItem('transactions', JSON.stringify(transactions)); // ذخیره در مرورگر
+            updateUI();
+            
+            // پاک کردن فرم به جز تاریخ
+            document.getElementById('amount').value = '';
+            document.getElementById('category').value = '';
+        });
+
+        // تابع حذف تراکنش
+        function deleteTransaction(id) {
+            if(confirm('آیا از حذف این تراکنش مطمئن هستید؟')) {
+                transactions = transactions.filter(t => t.id !== id);
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+                updateUI();
+            }
+        }
+
+        // تنظیم تاریخ امروز به صورت پیش‌فرض در فرم
+        document.getElementById('date').valueAsDate = new Date();
+        updateUI();
+    </script>
+</body>
+</html>
